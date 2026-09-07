@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BAS PLAST WhatsApp Coexistence</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 720px;
+      margin: 60px auto;
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    button {
+      padding: 14px 22px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    #status {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      padding: 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+  </style>
+
+  <script>
+    const META_APP_ID = '1042291982005390';
+
+    // ضع هنا Configuration ID الذي أعطتك Meta
+    const CONFIG_ID = '1388628552728516';
+
+    function setStatus(message) {
+      document.getElementById('status').textContent = message;
+    }
+
+    window.fbAsyncInit = function () {
+      FB.init({
+        appId: META_APP_ID,
+        cookie: false,
+        xfbml: false,
+        version: 'v26.0'
+      });
+
+      const button = document.getElementById('startButton');
+      button.disabled = false;
+      setStatus('Facebook SDK ready.');
+    };
+
+    function startEmbeddedSignup() {
+      setStatus('Opening WhatsApp Embedded Signup...');
+
+      FB.login(
+        function (response) {
+          if (response.authResponse && response.authResponse.code) {
+            setStatus(
+              'Embedded Signup returned an authorization code.\n' +
+              'The code is intentionally not displayed.'
+            );
+          } else {
+            setStatus('Embedded Signup closed or did not return an authorization code.');
+          }
+        },
+        {
+          config_id: CONFIG_ID,
+          auth_type: 'rerequest',
+          response_type: 'code',
+          override_default_response_type: true,
+          extras: {
+            setup: {},
+            featureType: 'whatsapp_business_app_onboarding'
+          }
+        }
+      );
+    }
+
+    window.addEventListener('message', function (event) {
+      if (
+        event.origin !== 'https://www.facebook.com' &&
+        event.origin !== 'https://web.facebook.com'
+      ) {
+        return;
+      }
+
+      let data;
+
+      try {
+        data =
+          typeof event.data === 'string'
+            ? JSON.parse(event.data)
+            : event.data;
+      } catch {
+        return;
+      }
+
+      if (!data || data.type !== 'WA_EMBEDDED_SIGNUP') {
+        return;
+      }
+
+      if (
+        data.event === 'FINISH' ||
+        data.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING'
+      ) {
+        setStatus(
+          'WhatsApp Embedded Signup reported completion.\n' +
+          'No authorization code or secret is shown on this page.'
+        );
+      } else if (data.event === 'CANCEL') {
+        setStatus('WhatsApp Embedded Signup was cancelled.');
+      } else if (data.event === 'ERROR') {
+        setStatus('WhatsApp Embedded Signup reported an error.');
+      } else {
+        setStatus('WhatsApp Embedded Signup event: ' + String(data.event));
+      }
+    });
+  </script>
+
+  <script
+    async
+    defer
+    crossorigin="anonymous"
+    src="https://connect.facebook.net/en_US/sdk.js">
+  </script>
+</head>
+
+<body>
+  <h1>BAS PLAST WhatsApp Coexistence</h1>
+
+  <p>
+    Temporary launcher for WhatsApp Business App Coexistence onboarding.
+  </p>
+
+  <button
+    id="startButton"
+    type="button"
+    disabled
+    onclick="startEmbeddedSignup()">
+    Start BAS PLAST WhatsApp Coexistence
+  </button>
+
+  <div id="status">Loading Facebook SDK...</div>
+</body>
+</html>
